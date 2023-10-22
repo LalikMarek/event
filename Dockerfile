@@ -1,4 +1,5 @@
 FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY target/event-docker.jar /app/app.jar
 EXPOSE 8080
-ADD target/event-docker.jar event-docker.jar
-ENTRYPOINT ["java", "-jar", "event-docker.jar"]
+CMD ["java", "-jar", "app.jar"]

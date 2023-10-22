@@ -1,7 +1,8 @@
 version: "3.3"
 
 services:
-  library:
+#  Service -> Host name pre ostatne services
+  database:
     restart: always
     image: sameersbn/postgresql:10-2
     environment:
@@ -16,6 +17,20 @@ services:
     volumes:
       - data:/var/lib/postgresql
       - logs:/var/log/postgresql
+
+  fronend:
+    build: ../event-FE
+    ports:
+      - "80"
+
+  backend:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/event
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8080:8080"
 
 volumes:
   data:
