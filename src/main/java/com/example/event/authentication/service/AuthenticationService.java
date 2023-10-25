@@ -235,38 +235,39 @@ public class AuthenticationService {
 
     private void cacheToken(String username, String token) {
         // Cache the token in Redis
-        redisTemplate.opsForValue().set("token:" + token, token, Duration.ofMinutes(TOKEN_VALIDITY_IN_MINUTES));
+        redisTemplate.opsForValue().set("token:" + username, token, Duration.ofMinutes(TOKEN_VALIDITY_IN_MINUTES));
+        redisTemplate.opsForValue().set("reverseToken:" + token, username, Duration.ofMinutes(TOKEN_VALIDITY_IN_MINUTES));
     }
 
     @Transactional
     public UserRolesDTO authenticate(String token) {
-        Optional<TokenEntity> optionalToken = tokenRepository.findByToken(token);
+        Optional<UserEntity> user = userRepository.findByUsername(redisTemplate.opsForValue().get("reverseToken:" + token));
 
-        if (optionalToken.isEmpty()) {
+        if (token.isEmpty()) {
             throw new AuthenticationCredentialsNotFoundException("Authentication failed!");
         }
 
-        validateTokenExpiration(optionalToken.get());
+        validateTokenExpiration(token);
 
-        Set<RoleEntity> roles = optionalToken.get().getUser().getRoles();
+        Set<RoleEntity> roles = user.get().getRoles();
         Set<String> roleNames = roles.stream()
                 .map( entry -> entry.getRoleName())
                 .collect(Collectors.toSet());
 
-        return new UserRolesDTO(optionalToken.get().getUser().getUsername(), roleNames);
+        return new UserRolesDTO(user.get().getUsername(), roleNames);
     }
 
-    private void validateTokenExpiration(TokenEntity token) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime tokenExpiration = token.getCreated().plus(TOKEN_VALIDITY_IN_MINUTES, ChronoUnit.MINUTES);
+    private void validateTokenExpiration(String token) {
+        Long tokenExpiration = redisTemplate.getExpire("reverseToken:" + token);
 
-        if ( now.isAfter(tokenExpiration) ) {
+        if (tokenExpiration == null || tokenExpiration < 0) {
+            System.out.println(tokenExpiration);
             throw new AuthenticationCredentialsNotFoundException("Authentication failed!");
         }
     }
 
     @Transactional
     public void tokenRemove(String token) {
-        redisTemplate.delete(token);
+        redisTemplate.delete("reverseToken:" + token);
     }
 }
