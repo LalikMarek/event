@@ -83,4 +83,9 @@ public class CustomerService {
         return dto;
     }
 
+    public void sendInformations(CustomerInformationRequestDTO customerInformationRequestDTO) {
+        // TODO
+
+
+    }
 }

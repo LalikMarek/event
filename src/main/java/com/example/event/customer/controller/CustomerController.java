@@ -1,6 +1,7 @@
 package com.example.event.customer.controller;
 
 import com.example.event.customer.service.CustomerDetailDTO;
+import com.example.event.customer.service.CustomerInformationRequestDTO;
 import com.example.event.customer.service.CustomerRequestDTO;
 import com.example.event.customer.service.CustomerService;
 import jakarta.validation.Valid;
@@ -49,5 +50,12 @@ public class CustomerController {
         System.out.println("Delete Customer.");
 
         customerService.deleteCustomer(customerId);
+    }
+
+    @PostMapping("/api/information")
+    public void sendInformations(@Valid @RequestBody CustomerInformationRequestDTO customerInformationRequestDTO){
+        System.out.println("Sending informations.");
+
+        customerService.sendInformations(customerInformationRequestDTO);
     }
 }
